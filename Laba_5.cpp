@@ -32,11 +32,15 @@ bool getBoolValue() {
   std::string value;
   while (true) {
     std::getline(std::cin, value);
+
+    if (value.length() != 1) {
+      std::cout << "Please enter only one digit: ";
+      continue;
+    }
+
     if (value == "1" || value == "0")
       return (value == "1" ? true : false);
     error();
-
-    continue;
   }
 }
 
@@ -66,6 +70,7 @@ char getCharValue() {
 float getFloatValue() {
   std::cout << "Enter a float value: ";
   float value;
+
   while (true) {
     if (std::cin >> value)
       return value;
@@ -78,9 +83,11 @@ float getFloatValue() {
 short getShortValue() {
   std::cout << "Enter a short value: ";
   short value;
+
   while (true) {
     if (std::cin >> value)
       return value;
+
     error();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
