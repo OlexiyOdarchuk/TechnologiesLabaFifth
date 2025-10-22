@@ -1,6 +1,8 @@
 # Лабораторна робота №5
 
-<img src="https://wakapi.dev/api/badge/iShawyha/interval:any/project:Laba_5">
+<p align="center"> 
+Часу приділено лабораторній роботі: <img src="https://wakapi.dev/api/badge/iShawyha/interval:any/project:Laba_5">
+</p>
 
 ## Навчальний заклад
 
