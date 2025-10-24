@@ -9,6 +9,8 @@ include_directories(include)
 
 file(GLOB SOURCES src/*.cpp)
 file(GLOB SIMPLE Laba_5.cpp)
+file(GLOB ONEFILE Laba_5_onefile.cpp)
 
 add_executable(Validator ${SOURCES})
 add_executable(Simple_Validator ${SIMPLE})
+add_executable(OneFile_Validator ${ONEFILE})
