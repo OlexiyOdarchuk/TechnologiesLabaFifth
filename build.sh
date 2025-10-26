@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # --- Налаштування ---
-EXECUTABLE_NAME="StudentManager"
+EXECUTABLE_NAME="Validator"
 DEFAULT_BUILD_TYPE="Debug"
 
 # --- Кольори для виводу ---

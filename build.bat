@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 :: --- Налаштування ---
-set "EXECUTABLE_NAME=StudentManager.exe"
+set "EXECUTABLE_NAME=Validator.exe"
 set "DEFAULT_BUILD_TYPE=Debug"
 
 :: --- Кольори (можуть не працювати на старих версіях Windows) ---
