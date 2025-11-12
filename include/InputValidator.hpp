@@ -1,134 +1,152 @@
+#pragma once
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#pragma once
 
-class InputValidator {
-private:
-  static void error(std::istream &is, std::ostream &os,
-                    const std::string &error) {
-    is.clear();
-    os << error;
-  }
+template <typename T>
+concept CharType = std::is_same_v<T, unsigned char> ||
+                   std::is_same_v<T, signed char> || std::is_same_v<T, char>;
+template <typename T>
+concept ArithmeticInputType =
+    std::is_arithmetic_v<T> && !CharType<T> && !std::is_same_v<T, bool>;
 
-public:
-  template <typename T>
-  static std::istream &get_data(std::istream &is, T &value,
-                                std::ostream &os = std::cout)
-    requires std::is_arithmetic_v<T> && (!std::is_same_v<T, char>) &&
-             (!std::is_same_v<T, bool>)
-  {
-    std::string input;
-    while (true) {
-      if (!std::getline(is, input))
-        return is;
+namespace InputValidator {
 
-      if (input.empty()) {
-        error(is, os, "Empty input. Please, try again: ");
-        continue;
-      }
+inline void error(std::istream &is, std::ostream &os,
+                  const std::string &error) {
+  is.clear();
+  os << error;
+}
 
-      try {
-        size_t pos;
+template <ArithmeticInputType T>
+inline std::istream &get_data(std::istream &is, T &value,
+                              const std::string &prompt = "Enter a number: ",
+                              const T min = std::numeric_limits<T>::lowest(),
+                              const T max = std::numeric_limits<T>::max(),
+                              std::ostream &os = std::cout) {
+  os << prompt;
+  std::string input;
+  while (true) {
+    if (!std::getline(is, input))
+      return is;
 
-        if constexpr (std::is_integral_v<T>) {
-          if constexpr (std::is_unsigned_v<T>) {
-            unsigned long long temp = std::stoull(input, &pos);
+    if (input.empty()) {
+      error(is, os, "Empty input. Please, try again: ");
+      continue;
+    }
 
-            if (pos != input.size())
-              throw std::invalid_argument{"Extra characters"};
+    try {
+      size_t pos{};
+      long double temp{};
 
-            if (temp > std::numeric_limits<T>::max())
-              throw std::out_of_range{"Out of range"};
-
-            value = static_cast<T>(temp);
-          } else {
-            long long temp = std::stoll(input, &pos);
-
-            if (pos != input.size())
-              throw std::invalid_argument{"Extra characters"};
-
-            if (temp < std::numeric_limits<T>::min() ||
-                temp > std::numeric_limits<T>::max())
-              throw std::out_of_range{"Out of range"};
-
-            value = static_cast<T>(temp);
-          }
-        } else if constexpr (std::is_floating_point_v<T>) {
-          long double temp = std::stold(input, &pos);
-
+      if constexpr (std::is_integral_v<T>) {
+        if constexpr (std::is_unsigned_v<T>) {
+          unsigned long long val = std::stoull(input, &pos);
           if (pos != input.size())
-            throw std::invalid_argument{"Extra characters"};
-
-          if (temp < std::numeric_limits<T>::lowest() ||
-              temp > std::numeric_limits<T>::max())
+            throw std::invalid_argument{"Unexpected characters after number"};
+          if (val < static_cast<unsigned long long>(min) ||
+              val > static_cast<unsigned long long>(max))
             throw std::out_of_range{"Out of range"};
-
-          value = static_cast<T>(temp);
+          value = static_cast<T>(val);
+        } else {
+          long long val = std::stoll(input, &pos);
+          if (pos != input.size())
+            throw std::invalid_argument{"Unexpected characters after number"};
+          if (val < static_cast<long long>(min) ||
+              val > static_cast<long long>(max))
+            throw std::out_of_range{"Out of range"};
+          value = static_cast<T>(val);
         }
+      } else {
+        temp = std::stold(input, &pos);
+        if (pos != input.size())
+          throw std::invalid_argument{"Unexpected characters after number"};
+        if (temp < static_cast<long double>(min) ||
+            temp > static_cast<long double>(max))
 
-        return is;
-      } catch (const std::invalid_argument &) {
-        error(is, os, "Invalid value. Please, try again: ");
-      } catch (const std::out_of_range &) {
-        error(is, os, "Value out of range. Please, try again: ");
-      }
-    }
-  }
-
-  static std::istream &get_data(std::istream &is, bool &value,
-                                std::ostream &os = std::cout) {
-    std::string input;
-    while (true) {
-      if (!std::getline(is, input))
-        return is;
-
-      if (input.empty()) {
-        error(is, os, "Empty input. Please, try again: ");
-        continue;
+          throw std::out_of_range{"Out of range"};
+        value = static_cast<T>(temp);
       }
 
-      if (input.length() != 1) {
-        error(is, os, "Please, enter one digit (0-1): ");
-        continue;
-      }
-
-      if (input == "1" || input == "0") {
-        value = (input == "1");
-        return is;
-      }
-
+      return is;
+    } catch (const std::out_of_range &) {
+      error(is, os, "Value out of range. Please, try again: ");
+    } catch (const std::exception &) {
       error(is, os, "Invalid value. Please, try again: ");
     }
   }
+}
+inline std::istream &get_data(std::istream &is, std::string &value,
+                              const std::string &prompt = "Enter a string: ",
+                              std::ostream &os = std::cout) {
+  os << prompt;
+  std::string input;
+  while (true) {
+    if (!std::getline(is, input))
+      return is;
 
-  static std::istream &get_data(std::istream &is, char &value,
-                                std::ostream &os = std::cout) {
-    const std::string valid = "abcdef";
-    std::string input;
-
-    while (true) {
-      if (!std::getline(is, input))
-        return is;
-
-      if (input.empty()) {
-        error(is, os, "Empty input. Please, try again: ");
-        continue;
-      }
-
-      if (input.length() != 1) {
-        error(is, os, "Please, enter one letter (a-f): ");
-        continue;
-      }
-
-      if (valid.find(input[0]) != std::string::npos) {
-        value = input[0];
-        return is;
-      }
-
-      error(is, os, "Invalid value. Please, try again: ");
+    if (input.empty()) {
+      error(is, os, "Empty input. Please, try again: ");
+      continue;
     }
+    value = input;
+    return is;
   }
-};
+}
+inline std::istream &
+get_data(std::istream &is, bool &value,
+         const std::string &prompt = "Enter 0 for false or 1 for true: ",
+         std::ostream &os = std::cout) {
+  os << prompt;
+  std::string input;
+  while (true) {
+    if (!std::getline(is, input))
+      return is;
+
+    if (input.empty()) {
+      error(is, os, "Empty input. Please, try again: ");
+      continue;
+    }
+
+    if (input.length() != 1) {
+      error(is, os, "Enter 0 for false or 1 for true: ");
+      continue;
+    }
+
+    if (input == "1" || input == "0") {
+      value = (input == "1");
+      return is;
+    }
+
+    error(is, os, "Invalid value. Please, try again: ");
+  }
+}
+template <CharType T>
+inline std::istream &get_data(std::istream &is, T &value,
+                              const std::string &prompt = "Enter a char: ",
+                              std::ostream &os = std::cout) {
+  os << prompt;
+  std::string input;
+
+  while (true) {
+    if (!std::getline(is, input))
+      return is;
+
+    if (input.empty()) {
+      error(is, os, "Empty input. Please, try again: ");
+      continue;
+    }
+
+    if (input.length() != 1) {
+      error(is, os, "Please, enter a char: ");
+      continue;
+    }
+
+    value = static_cast<T>(input[0]);
+    return is;
+  }
+}
+}; // namespace InputValidator
